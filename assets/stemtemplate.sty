@@ -150,7 +150,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{amsmath, amssymb, amsfonts} % AMS math environments and symbols
 \usepackage{mathtools}          % Extensions to amsmath (e.g. \coloneqq, matrices)
-\usepackage{bm}                 % Bold math symbols via \bm{}
+\usepackage[bold-style=ISO]{unicode-math} % Math font engine
+\setmathfont{IBM Plex Math}     % Math font
+\let\bm\symbf % unicode-math's native bold-math command
 \usepackage{siunitx} % Units and scientific notation (e.g. \SI{9.8}{\metre\per\second})
 \sisetup{detect-all, per-mode=symbol} % Inherit surrounding font in SI units
 % EQUATIONS NUMBERED BY SECTION ---------------------------
@@ -159,7 +161,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CHEMISTRY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage[version=4]{mhchem} % Chemical equations via \ce{}
+\newcommand{\cemathfont}[1]{\ifthenelse{\equal{\metaDefaultFont}{sans}}{\mathsf{#1}}{\mathrm{#1}}}
+\newcommand{\cetextfont}{\ifthenelse{\equal{\metaDefaultFont}{sans}}{\sffamily}{\rmfamily}}
+\usepackage[version=4, textfontname=cetextfont, mathfontname=cemathfont]{mhchem} % Chemical equations via \ce{}
 % REACTION COUNTER ----------------------------------------
 \newcounter{reaction}
 \ifthenelse{\equal{\metaNumberEquations}{true}}{%
@@ -229,6 +233,28 @@
 		\orig@ltx@label{##1}}%
 	\alignat{#1}%
 }{\tag{\thereaction}\endalignat}
+\usepackage{chemfig} % Lewis dot diagrams
+\newlength{\atomstackwidth}
+\newcommand{\mcfabove}[2]{%
+	\settowidth{\atomstackwidth}{\ensuremath{\cemathfont{#1}}}%
+	\cemathfont{#1}%
+	\hspace{-0.5\atomstackwidth}%
+	\raisebox{1.1em}[0pt][0pt]{\makebox[0pt][c]{\ensuremath{\cemathfont{#2}}}}%
+	\hspace{0.5\atomstackwidth}%
+}
+\newcommand{\mcfbelow}[2]{%
+	\settowidth{\atomstackwidth}{\ensuremath{\cemathfont{#1}}}%
+	\cemathfont{#1}%
+	\hspace{-0.5\atomstackwidth}%
+	\raisebox{-1.1em}[0pt][0pt]{\makebox[0pt][c]{\ensuremath{\cemathfont{#2}}}}%
+	\hspace{0.5\atomstackwidth}%
+}
+\renewcommand*\printatom[1]{\ensuremath{\cemathfont{#1}}} % Changes font
+\setchemfig{
+	bond style={line width=0.6pt},
+	double bond sep=2pt,
+	atom sep=2em,
+	cram width = 5pt}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THEOREM ENVIRONMENTS

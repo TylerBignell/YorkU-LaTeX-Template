@@ -555,8 +555,10 @@
 	\end{equation}
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\subsection{\texttt{bm}}
-	The \texttt{bm} package gives you the \texttt{\textbackslash bm\{\}} command, which makes a math symbol bold while keeping it italic. This is a common way to write vectors and matrices in science and engineering, since \texttt{\textbackslash mathbf} would make the letter upright:
+	\subsection{\texttt{unicode-math}}
+	The \texttt{unicode-math} package replaces \LaTeX{}'s default math font engine, letting a full OpenType math font. Here, \textbf{IBM Plex Math} is used for every symbol, letter, and number in math mode, matching this document's default body text family.
+	
+	It also supplies \texttt{\textbackslash symbf\{\}}, the native bold-math command for OpenType math fonts, which makes a symbol bold while keeping it italic. This is a common way to write vectors and matrices in science and engineering. This template aliases \texttt{\textbackslash bm\{\}} command to \texttt{\textbackslash symbf\{\}}, so they have the same function:
 	
 	\begin{equation}
 		\bm{F} = m\bm{a} \qquad \bm{v} = \bm{u} + \bm{a}t
@@ -704,6 +706,71 @@
 					&-> E}
 			\end{split}
 		\end{requation}
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{\texttt{chemfig}}
+	The \texttt{chemfig} package draws chemical structures, skeletal formulas, Lewis structures, and ring systems built on top of \texttt{tikz}. Where \texttt{mhchem} writes chemical text (formulas and reaction equations), \texttt{chemfig} draws chemical pictures, so the two packages complement each other rather than overlap.
+	
+	A structure is described as a chain of atoms and bonds: \texttt{-} for a single bond, \texttt{=} for a double bond, and \texttt{\textasciitilde} for a triple bond. Branches are written in parentheses, and each bond can take an optional bracketed direction code \texttt{[n]}, where \texttt{n} is a number from \texttt{0} to \texttt{7} representing 45\textdegree{} increments counterclockwise from due east (so \texttt{[0]} points right, \texttt{[2]} points up, \texttt{[4]} points left, \texttt{[6]} points down). An exact angle can also be given directly with \texttt{[:angle]}.
+	
+	For full instructions, see the \texttt{chemfig} manual: \url{http://www.nagel-net.de/Latex/DOKU/Chemie_chemfig.pdf}
+	
+	\begin{figure}[H]
+		\centering
+		\chemfig{H_3C-C(=[2]O)-OH}
+		\caption{Acetic acid drawn with \texttt{chemfig}. The bracketed \texttt{[2]} sends the double-bonded oxygen straight up so it does not overlap the main chain.}
+		\label{fig:chemfig-acetic-acid}
+	\end{figure}
+	
+	Rings are opened with \texttt{*n(...)}, where \texttt{n} is the number of atoms in the ring and the bond sequence inside the parentheses is repeated around it:
+	
+	\begin{figure}[H]
+		\centering
+		\chemfig{*6(-=-=-=)}
+		\caption{Benzene drawn with \texttt{chemfig} using the ring shorthand.}
+		\label{fig:chemfig-benzene}
+	\end{figure}
+	
+	For structures with three or more substituents on a single atom, always give every bond an explicit direction code rather than relying on automatic spacing. \texttt{chemfig} does not rebalance angles on its own, so unlabelled branch bonds can overlap.
+	
+	A \texttt{chemfig} structure can also be placed directly inside a numbered reaction environment such as \texttt{requation}, letting a reaction be shown as structural diagrams instead of \texttt{mhchem} text. This works for a single plain arrow; a multi-step scheme with reagents or conditions written above and below the arrow needs \texttt{chemfig}'s own \texttt{\textbackslash schemestart} instead, since that has its own internal layout that does not fit inside \texttt{equation}.
+	
+	\begin{requation}
+		\ce{\chemfig{H-C(-[2]H)(-[6]H)-H} \hspace{8pt} ->[O2] \hspace{8pt} \chemfig{O=C=O} \hspace{8pt} + \hspace{8pt} \chemfig{H-[1]O-[7]H}}
+		\label{rxn:chemfig-combustion}
+	\end{requation}
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{Using \texttt{mol2chemfig}}
+	\noindent\colorbox{themecolour!15}{\parbox{\linewidth}{\small This is an external command-line tool, not a \LaTeX{} package. It is not loaded with \texttt{\textbackslash usepackage} and does not run as part of compiling this document. It is used separately, beforehand, to generate \texttt{\textbackslash chemfig\{\}} code that is then pasted into the document.}}\vspace{0.5\baselineskip}
+	
+	Hand-writing direction codes for a complex structure is slow and error-prone. \texttt{mol2chemfig} automates it: given a chemical identifier, it computes the atom layout and outputs ready-to-use \texttt{chemfig} code with the bond angles already assigned.
+	
+	Install it from a terminal:
+	
+	\vspace{16pt}\noindent\texttt{pip install -U mol2chemfigPy3}\vspace{16pt}
+	
+	It accepts SMILES strings (find on \href{https://pubchem.ncbi.nlm.nih.gov/}{PubChem}), and can be run directly from the command line:
+	
+	\vspace{16pt}\noindent\texttt{mol2chemfig -zw -i direct "\textcolor{themecolour}{SMILES input}"}\vspace{16pt}
+	
+	\texttt{-i direct} tells it the argument is a SMILES string rather than a filename, and \texttt{-zw} wraps the result in \texttt{\textbackslash chemfig\{...\}} so the output can be pasted straight into a figure. Useful additional flags include \texttt{-c} to label every carbon explicitly, \texttt{-o} to draw rings with a circle instead of alternating double bonds, \texttt{-y} to include hydrogen atoms, and \texttt{-i pubchem} to look a compound up by its PubChem CID instead of supplying a SMILES string directly. Chemical names can be converted to a SMILES string first using a tool such as \href{https://www.ebi.ac.uk/opsin/}{OPSIN} if the name is not already known.
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{Using \texttt{mol2lewis}}
+	\noindent\colorbox{themecolour!15}{\parbox{\linewidth}{\small Like \texttt{mol2chemfig}, this is an external tool used outside the document to generate \texttt{chemfig} code beforehand, not a package loaded into this document.}}\vspace{0.5\baselineskip}
+	
+	\texttt{mol2chemfig} draws bond skeletons but has no way to add lone pairs, since a plain SMILES string does not encode them. \texttt{mol2lewis} builds on top of \texttt{mol2chemfigPy3} specifically to add that missing piece, generating full Lewis structures, bonds plus lone-pair dots, from a chemical identifier.
+	
+	Install it the same way, ideally in a virtual environment:
+	
+	\vspace{16pt}\noindent\texttt{pip install mol2lewis}\vspace{16pt}
+	
+	It has no command-line interface:
+	
+	\vspace{16pt}\noindent\texttt{python -c "from mol2lewis import lewis; print(lewis('\textcolor{themecolour}{Input}')[0]['normal'])"}\vspace{16pt}
+	
+	The \texttt{lewis()} function accepts SMILES, InChI, InChIKey, a PubChem CID, a bare chemical formula, or a file path, and automatically detects which one it was given. It returns a list of results rather than a single string, since an ambiguous input such as a bare formula can match more than one compound; each result is a dictionary with a \texttt{'normal'} and a \texttt{'draft'} version of the generated code. By default carbons are labelled and the output is already wrapped in \texttt{\textbackslash chemfig\{...\}}, so \texttt{results[0]['normal']} can be pasted directly into a figure.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THEOREM ENVIRONMENTS
